@@ -16,6 +16,7 @@ if exists("g:perl_next_method_loaded") || exists("g:perl_next_method_disable") |
     finish
 endif
 let g:perl_next_method_version = "0.0.1"
+let g:perl_next_method_pattern = '\v^\s*(method|func|sub)\s*\w+\s*(\(\s*.{-}\s*\))?\s*\n*\{'
 
 au FileType perl noremap <silent> ]m :<C-U>call Perl_method_jump('')<CR>
 au FileType perl noremap <silent> [m :<C-U>call Perl_method_jump('b')<CR>
@@ -23,27 +24,25 @@ au FileType perl noremap <silent> ]M :<C-U>call Perl_method_end_jump()<CR>
 au FileType perl noremap <silent> [M :<C-U>call Perl_method_jump_before()<CR>
 
 function! Perl_method_jump(type) range
-    let l:pattern =  '\v^\s*sub\s*\w+\s*(\(\s*.{-}\s*\))?\s*\n*\{'
     for i in range(1, v:count1)
-        call search(l:pattern, a:type . 'W')
+        call search(g:perl_next_method_pattern, a:type . 'W')
     endfor
 endfunction
 
 function! Perl_method_jump_before() range
     " let a:lastline -= 1
-    let l:pattern =  '\v^\s*sub\s*\w+\s*(\(\s*.{-}\s*\))?\s*\n*\{'
     " retrieve the cursor position
     let l:current_pos = getpos(".")
     " keep the counter as it is going to be reset by any normal mode command
     let l:counter = v:count1
 
-    if !(searchpos(l:pattern, 'bceW')[0])
+    if !(searchpos(g:perl_next_method_pattern, 'bceW')[0])
         " no previous subroutine so nothing to do
         return 1
     endif
 
     " keep this flag to determine if we have any previous method to jump to
-    let l:have_previous_method = search(l:pattern, 'nbeW')
+    let l:have_previous_method = search(g:perl_next_method_pattern, 'nbeW')
 
     keepjumps normal %
 
@@ -58,27 +57,26 @@ function! Perl_method_jump_before() range
         let l:counter +=1
     endif
 
-    call Jump_to_nr_of_sub_end(l:counter, l:pattern, 'b')
+    call Jump_to_nr_of_sub_end(l:counter, g:perl_next_method_pattern, 'b')
 
 endfunction
 
 
 function! Perl_method_end_jump() range
-    let l:pattern =  '\v^\s*sub\s*\w+\s*(\(\s*.{-}\s*\))?\s*\n*\{'
     " retrieve the cursor position
     let l:current_pos = getpos(".")
     " keep the counter as it is going to be reset by any normal mode command
     let l:counter = v:count1
 
     " search backwards first to see if there are any subroutines before cursor
-    if !(searchpos(l:pattern, 'bceW')[0])
+    if !(searchpos(g:perl_next_method_pattern, 'bceW')[0])
         " no previous subroutine so jump forward
-        call Jump_to_nr_of_sub_end(l:counter, l:pattern, '')
+        call Jump_to_nr_of_sub_end(l:counter, g:perl_next_method_pattern, '')
         return 1
     endif
 
     " keep this flag to determine if we have any succesive methods
-    let l:have_next_method = search(l:pattern, 'neW')
+    let l:have_next_method = search(g:perl_next_method_pattern, 'neW')
     " jump to the end of the previous subroutine
     keepjumps normal %
 
@@ -94,7 +92,7 @@ function! Perl_method_end_jump() range
     endif
 
     " we were not in a subroutine so we simply jump forward
-    call Jump_to_nr_of_sub_end(l:counter, l:pattern, '')
+    call Jump_to_nr_of_sub_end(l:counter, g:perl_next_method_pattern, '')
 endfunction
 
 function! Jump_to_nr_of_sub_end(jumps, sub_pattern, type)
