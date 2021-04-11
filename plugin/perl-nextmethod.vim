@@ -16,7 +16,7 @@ if exists("g:perl_next_method_loaded") || exists("g:perl_next_method_disable") |
     finish
 endif
 let g:perl_next_method_version = "0.0.1"
-let g:perl_next_method_pattern = '\v^\s*(method|func|sub)\s*\w+\s*(\(\s*.{-}\s*\))?\s*\n*\{'
+let g:perl_next_method_pattern = '\v^\s*(((method|func|sub)\s+\w+\s*(\(\s*.{-}\s*\))?\s*\n*\{)|(has\s+\w+\s*\=\>\s*\())'
 
 au FileType perl noremap <silent> ]m :<C-U>call Perl_method_jump('')<CR>
 au FileType perl noremap <silent> [m :<C-U>call Perl_method_jump('b')<CR>
